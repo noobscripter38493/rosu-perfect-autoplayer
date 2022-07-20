@@ -121,7 +121,7 @@ for i = 1, #gc do
                 local old4; old4 = hookfunc(v.new, function(self, _1, track, _2, _3, p6, p7, ...)
                     local heldnote = old4(self, _1, track, _2, _3, p6, p7, ...)
                     
-                    if typeof(heldnote) ~= table then return heldnote end
+                    if typeof(heldnote) ~= "table" then return heldnote end
                     
                     notes[#notes + 1] = copy_table(heldnote)
                     
@@ -130,7 +130,7 @@ for i = 1, #gc do
 
                     local old5 = heldnote.update
                     heldnote.update = function(...)
-                        local o = old5(...) -- update the value before grabbing it (just calls function)
+                        local o = old5(...)
                         local u11 = getupvalue(old5, 2)
 
                         t.press = u11 - p6
