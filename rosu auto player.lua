@@ -1,5 +1,12 @@
-local autoplayer
-local orion = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+local settings = {
+    autoplayer = false,
+    playing = false,
+    hitdelay = 0, 
+    mindelay = 0,
+    maxdelay = 0
+}
+
+local orion = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
 repeat task.wait() until orion
 local window = orion:MakeWindow({
     Name = "rosu! Perfect Autoplayer | Made By avg#1496",
@@ -15,17 +22,51 @@ local autoplayer_tab = window:MakeTab({
 })
 
 autoplayer_tab:AddToggle({
-    Name = "Autoplayer Toggle",
+    Name = "Autoplayer",
     Default = false,
     Callback = function(bool)
-        autoplayer = bool
+        settings.autoplayer = bool
+    end
+})
+
+autoplayer_tab:AddParagraph("Hit Delay", "Hit Delay is a random number between your min & max")
+autoplayer_tab:AddToggle({
+    Name = "Hit Delay",
+    Default = false,
+    Callback = function(bool)
+        settings.hitdelay = bool
+    end
+})
+
+autoplayer_tab:AddSlider({
+    Name = "Hit Delay Min (ms)",
+    Min = 0,
+    Max = 5,
+    Default = 0,
+    Color = Color3.fromRGB(255, 255, 255),
+    Increment = 1,
+    ValueName = "ms",
+    Callback = function(v)
+        settings.mindelay = v / 1000
+    end
+})
+
+autoplayer_tab:AddSlider({
+    Name = "Hit Delay Max (ms)", 
+    Min = 0,
+    Default = 0,
+    Max = 5,
+    Color = Color3.fromRGB(255, 255, 255),
+    Increment = 1,
+    ValueName = "ms",
+    Callback = function(v)
+        settings.maxdelay = v / 1000
     end
 })
 
 local core
 local NoteResult
 local notes = {}
-local playing
 local gc = getgc(true)
 for i = 1, #gc do
     local v = gc[i]
@@ -37,11 +78,11 @@ for i = 1, #gc do
             if source:match("Local.GameLocal") then
                 local old; old = hookfunc(v.new, function(...)
                     core = old(...)
-                    playing = true
+                    settings.playing = true
                     
                     local old2 = core.teardown_game
                     core.teardown_game = function(...)
-                        playing = false
+                        settings.playing = false
                         table.clear(notes)
                         return old2(...) 
                     end
@@ -109,9 +150,19 @@ for i = 1, 4 do
     end)
 end
 
+local function delay()
+    local mindelay = settings.mindelay
+    local maxdelay = settings.maxdelay
+
+    local rand = Random.new()
+    local t = rand:NextNumber(mindelay, maxdelay) / 10
+
+    task.wait(t)
+end
+
 local uis = game:GetService("UserInputService")
 while true do
-    if not autoplayer or not playing then task.wait(1) continue end
+    if not settings.autoplayer or not settings.playing then task.wait(1) continue end
     for i = 1, #notes do
         local note = notes[i] or {hit = true}
         
@@ -126,6 +177,10 @@ while true do
         if press == 5 and not note.hit then
             note.hit = true
             spawn(function()
+                if settings.hitdelay then
+                    delay()
+                end
+
                 setThreadIdentity(2)
                 firesignal(uis.InputBegan, {KeyCode = tracks[note.track], UserInputType = Enum.UserInputType.Keyboard}, false)
                 
@@ -135,6 +190,10 @@ while true do
                     task.wait() 
                 until release == 5
                 
+                if settings.hitdelay then
+                    delay()
+                end
+
                 firesignal(uis.InputEnded, {KeyCode = tracks[note.track], UserInputType = Enum.UserInputType.Keyboard}, false)
                 setThreadIdentity(7)
             end)
