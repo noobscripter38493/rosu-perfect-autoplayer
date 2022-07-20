@@ -6,7 +6,7 @@ local settings = {
     maxdelay = 0
 }
 
-local orion = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
+local orion = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
 repeat task.wait() until orion
 local window = orion:MakeWindow({
     Name = "rosu! Perfect Autoplayer | Made By avg#1496",
@@ -28,8 +28,6 @@ autoplayer_tab:AddToggle({
         settings.autoplayer = bool
     end
 })
-
-autoplayer_tab:AddParagraph("Hit Delay", "Hit Delay is a random number between your min & max")
 autoplayer_tab:AddToggle({
     Name = "Hit Delay",
     Default = false,
@@ -91,8 +89,8 @@ for i = 1, #gc do
                 end)
                 
             elseif source == "=ReplicatedStorage.Local.Note" then
-                local old3; old3 = hookfunc(v.new, function(self, b, track, ...)
-                    local note = old3(self, b, track, ...)
+                local old3; old3 = hookfunc(v.new, function(self, _, track, ...)
+                    local note = old3(self, _, track, ...)
 
                     notes[#notes + 1] = note    
                     note.track = track
@@ -101,8 +99,8 @@ for i = 1, #gc do
                 end)
             
             elseif source == "=ReplicatedStorage.Local.HeldNote" then
-                local old4; old4 = hookfunc(v.new, function(self, b, track, _1, _2, p6, p7, ...)
-                    local heldnote = old4(self, b, track, _1, _2, p6, p7, ...)
+                local old4; old4 = hookfunc(v.new, function(self, _1, track, _2, _3, p6, p7, ...)
+                    local heldnote = old4(self, _1, track, _2, _3, p6, p7, ...)
                     notes[#notes + 1] = heldnote
                     heldnote.track = track
 
