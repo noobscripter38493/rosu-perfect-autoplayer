@@ -179,10 +179,6 @@ while true do
         local note = notes[i] or {hit = true}
         
         if note.hit then continue end
-    
-        for i3, v3 in next, note do
-            print(i3, v3) 
-        end
         
         if note.get_time_to_end then
             note.press = note:get_time_to_end()
