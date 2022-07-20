@@ -28,6 +28,8 @@ autoplayer_tab:AddToggle({
         settings.autoplayer = bool
     end
 })
+
+autoplayer_tab:AddParagraph("Hit Delay", "Hit Delay is a random number between your min & max")
 autoplayer_tab:AddToggle({
     Name = "Hit Delay",
     Default = false,
