@@ -6,7 +6,7 @@ local settings = {
     maxdelay = 0
 }
 
-local orion = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+local orion = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
 repeat task.wait() until orion
 local window = orion:MakeWindow({
     Name = "rosu! Perfect Autoplayer | Made By avg#1496",
