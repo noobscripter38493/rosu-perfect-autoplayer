@@ -1,8 +1,30 @@
+local autoplayer
+local orion = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+repeat task.wait() until orion
+local window = orion:MakeWindow({
+    Name = "rosu! Perfect Autoplayer | Made By avg#1496",
+    HidePremium = false,
+    SaveConfig = false,
+    ConfigFolder = ""
+})
+
+local autoplayer_tab = window:MakeTab({
+    Name = "Autoplayer",
+    Icon = "",
+    PremiumOnly = false
+})
+
+autoplayer_tab:AddToggle({
+    Name = "Autoplayer Toggle",
+    Default = false,
+    Callback = function(bool)
+        autoplayer = bool
+    end
+})
+
 local core
 local NoteResult
 local notes = {}
-
-local autoplayer
 local playing
 local gc = getgc(true)
 for i = 1, #gc do
@@ -63,27 +85,6 @@ for i = 1, #gc do
         end
     end
 end
-
-local orion = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
-local window = orion:MakeWindow({
-    Name = "rosu! Perfect Autoplayer | Made By avg#1496",
-    HidePremium = false,
-    SaveConfig = false,
-    ConfigFolder = "OrionTest"
-})
-local autoplayer_tab = window:MakeTab({
-    Name = "Autoplayer",
-    Icon = "",
-    PremiumOnly = false
-})
-
-autoplayer_tab:AddToggle({
-    Name = "Autoplayer Toggle",
-    Default = false,
-    Callback = function(bool)
-        autoplayer = bool
-    end
-})
 
 repeat task.wait(.1) until core and notes[1] and NoteResult
 local spawn = task.spawn
