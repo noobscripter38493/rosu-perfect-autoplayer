@@ -62,6 +62,16 @@ autoplayer_tab:AddSlider({
     end
 })
 
+local function copy_table(t)
+    local c = {}
+    
+    for i, v in next, t do
+        c[i] = v
+    end
+    
+    return c 
+end
+
 local core
 local NoteResult
 local notes = {}
@@ -91,9 +101,9 @@ for i = 1, #gc do
             elseif source == "=ReplicatedStorage.Local.Note" then
                 local old3; old3 = hookfunc(v.new, function(self, _, track, ...)
                     local note = old3(self, _, track, ...)
-
-                    notes[#notes + 1] = note    
-                    note.track = track
+                    
+                    notes[#notes + 1] = copy_table(note)
+                    notes[#notes].track = track
                     
                     return note
                 end)
@@ -101,20 +111,22 @@ for i = 1, #gc do
             elseif source == "=ReplicatedStorage.Local.HeldNote" then
                 local old4; old4 = hookfunc(v.new, function(self, _1, track, _2, _3, p6, p7, ...)
                     local heldnote = old4(self, _1, track, _2, _3, p6, p7, ...)
-                    notes[#notes + 1] = heldnote
-                    heldnote.track = track
+                    notes[#notes + 1] = copy_table(heldnote)
+                    
+                    local t = notes[#notes]
+                    t.track = track
 
                     local old5 = heldnote.update
                     heldnote.update = function(...)
                         local o = old5(...) -- update the value before grabbing it (just calls function)
                         local u11 = getupvalue(old5, 2)
 
-                        heldnote.press = u11 - p6
-                        heldnote.release = u11 - (p6 + p7)
+                        t.press = u11 - p6
+                        t.release = u11 - (p6 + p7)
                         
                         return o
                     end
-                
+                    
                     return heldnote
                 end)
             end
@@ -165,6 +177,10 @@ while true do
         local note = notes[i] or {hit = true}
         
         if note.hit then continue end
+    
+        for i3, v3 in next, note do
+            print(i3, v3) 
+        end
         
         if note.get_time_to_end then
             note.press = note:get_time_to_end()
