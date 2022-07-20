@@ -85,24 +85,31 @@ for i = 1, #gc do
         if typeof(gamestart) == "function" then
             local source = getinfo(gamestart).source
             
-            if source:match("Local.GameLocal") then
+            if source:match("RG5sC9Uwmr.GameLocal") then
                 local old; old = hookfunc(v.new, function(...)
-                    core = old(...)
-                    settings.playing = true
+                    local temp = old(...)
                     
+                    if typeof(temp) ~= table then return temp end
+                    core = temp
+                    
+                    settings.playing = true
+
                     local old2 = core.teardown_game
                     core.teardown_game = function(...)
                         settings.playing = false
                         table.clear(notes)
-                        return old2(...) 
+
+                        return old2(...)
                     end
                     
                     return core
                 end)
                 
-            elseif source == "=ReplicatedStorage.Local.Note" then
+            elseif source == "=ReplicatedStorage.RG5sC9Uwmr.HeldNote" then
                 local old3; old3 = hookfunc(v.new, function(self, _, track, ...)
                     local note = old3(self, _, track, ...)
+                    
+                    if typeof(note) ~= "table" then return note end
                     
                     notes[#notes + 1] = copy_table(note)
                     notes[#notes].track = track
@@ -110,9 +117,12 @@ for i = 1, #gc do
                     return note
                 end)
             
-            elseif source == "=ReplicatedStorage.Local.HeldNote" then
+            elseif source == "=ReplicatedStorage.RG5sC9Uwmr.Note" then
                 local old4; old4 = hookfunc(v.new, function(self, _1, track, _2, _3, p6, p7, ...)
                     local heldnote = old4(self, _1, track, _2, _3, p6, p7, ...)
+                    
+                    if typeof(heldnote) ~= table then return heldnote end
+                    
                     notes[#notes + 1] = copy_table(heldnote)
                     
                     local t = notes[#notes]
