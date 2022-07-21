@@ -366,7 +366,7 @@ local nc; nc = hookmetamethod(game, "__namecall", function(self, ...)
         end
 
         ]]
-    elseif self == ban and ncm == "FireServer" then
+    elseif self == ban and self.IsA(self, "RemoteEvent") and ncm == "FireServer" then
         --print(debug.traceback())
         
         return
