@@ -81,7 +81,7 @@ local gc = getgc(true)
 local spawn = task.spawn
 for i = 1, #gc do
     local v = gc[i]
-    if typeof(v) == "function" and islclosure(v) and not is_synapse_function(v) then
+    if typeof(v) == "function" and islclosure(v) then
         local heldnoteproto = getprotos(v)[10]
         if heldnoteproto and getconstants(heldnoteproto)[3] == "HeldNoteProto" then
             local old1; old1 = hookfunc(v, function(self, _1, track, _2, _3, p6, p7, ...)
