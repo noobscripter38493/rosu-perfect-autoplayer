@@ -340,6 +340,7 @@ local rates = {
 local Players = game:GetService("Players")
 local uis = game:GetService("UserInputService")
 local realkeys = {}
+local ban2 = game.ReplicatedStorage:FindFirstChild("GameEvent")
 local ban = game.ReplicatedStorage:FindFirstChild("Ban")
 local nc; nc = hookmetamethod(game, "__namecall", function(self, ...)
     local ncm = getnamecallmethod()
@@ -366,7 +367,7 @@ local nc; nc = hookmetamethod(game, "__namecall", function(self, ...)
         end
 
         ]]
-    elseif self == ban and self.IsA(self, "RemoteEvent") and ncm == "FireServer" then
+    elseif self == ban or self == ban2 and self.IsA(self, "RemoteEvent") and ncm == "FireServer" then
         --print(debug.traceback())
         
         return
