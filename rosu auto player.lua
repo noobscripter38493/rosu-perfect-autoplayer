@@ -76,6 +76,7 @@ end
 
 local notes = {}
 local core  
+local songrate
 local fakekeys = {}
 local gc = getgc(true)
 local spawn = task.spawn
@@ -91,13 +92,13 @@ for i = 1, #gc do
                 if typeof(rawget(heldnote, "update")) ~= "function" then return heldnote end
                 
                 local t = copy_table(heldnote)
-                t.held = true
+                --t.held = true
                 t.track = track
                 notes[#notes + 1] = t
 
                 local old5 = heldnote.update
                 heldnote.update = function(...)
-                    local o = old5(...)
+                    local o = old5(...) 
                     local u11 = getupvalue(old5, 2)
 
                     t.press = u11 - p7
@@ -112,15 +113,30 @@ for i = 1, #gc do
         
         local noteproto = getprotos(v)[5]
         if noteproto and getconstants(noteproto)[3] == "NoteProto" then
-            local old3; old3 = hookfunc(v, function(self, _, track, ...)
-                local note = old3(self, _, track, ...)
+            local old3; old3 = hookfunc(v, function(self, _1, track, p4, _2, p6, ...)
+                local note = old3(self, _1, track, p4, _2, p6, ...)
                 if typeof(note) ~= "table" then return note end
+                if typeof(rawget(note, "update")) ~= "function" then return note end
+                if typeof(rawget(note, "get_time_to_end")) ~= "function" then return note end
                 
                 local t = copy_table(note)
                 t.track = track
-                t.held = false
+                --t.held = false
                 notes[#notes + 1] = t
-                
+
+                local old6 = note.get_time_to_end
+                note.get_time_to_end = function(...)
+                    local o = old6(...)
+                    
+                    local u8 = getupvalue(old6, 3)
+                    if typeof(u8) ~= "number" then return o end
+
+                    t.press = (p4 - p6) * (1 - u8)
+                    t.release = (p4 - p6) * (1 - u8)
+
+                    return o
+                end
+
                 return note
             end)
         end
@@ -131,7 +147,7 @@ for i = 1, #gc do
             spawn(function()
                 local gamelocal = getprotos(new)[3]
                 if not gamelocal then return end
-
+                
                 local constants = getconstants(gamelocal)
                 if constants[1] ~= 1000 or constants[2] ~= "_audio_manager" or constants[3] ~= "get_song_length_ms" then return end
 
@@ -141,6 +157,8 @@ for i = 1, #gc do
                     
                     if getconstant(2, 1) ~= "print" or getconstant(2, 3) ~= ">> Song Rate: " then return temp end
                     if typeof(temp) ~= "table" then return temp end
+                    if typeof(rawget(temp, "_audio_manager")) ~= "table" then return temp end
+                    if typeof(rawget(temp._audio_manager, "load_song")) ~= "function" then return temp end
                     if typeof(rawget(temp, "teardown_game")) ~= "function" then return temp end
                     
                     core = temp
@@ -153,6 +171,16 @@ for i = 1, #gc do
                         table.clear(notes)
                         
                         return old2(...)
+                    end
+
+                    local old7 = temp._audio_manager.load_song
+                    temp._audio_manager.load_song = function(...)
+                        local o = old7(...)
+			local temp = getupvalue(old7, 2)
+			if typeof(temp) ~= "number" then return o end	
+                        songrate = temp
+
+                        return o
                     end
                     
                     return temp
@@ -231,14 +259,12 @@ for i = 1, 4 do
     end)
 end
 
+local rand = Random.new()
 local function delay()
     local mindelay = settings.mindelay
     local maxdelay = settings.maxdelay
 
-    local rand = Random.new()
-    local t = rand:NextNumber(mindelay, maxdelay) / 10
-
-    task.wait(t)
+    task.wait(rand:NextNumber(mindelay, maxdelay) / 10)
 end
 
 local rates = { 
@@ -251,9 +277,9 @@ local rates = {
 	PerfectX = 5, 
 	]]
 	timedelta_to_result = function(self, p2, p3)
-		p2 = p2 / p3._audio_manager.get_song_rate();
-
-        return p3._audio_manager.NOTE_PERFECTX_MIN < p2 and p2 <= p3._audio_manager.NOTE_PERFECTX_MAX
+		p2 = p2 / songrate
+        -- https://cdn.discordapp.com/attachments/628341793443938304/999800009719562310/unknown.png
+        return -20 < p2 and p2 <= 20
 
         --[[
 		if not (p3._audio_manager.NOTE_BAD_MIN <= p2) or not (p2 <= p3._audio_manager.NOTE_MISS_MAX) then
@@ -296,9 +322,9 @@ local rates = {
 	end, 
 
 	release_timedelta_to_result = function(self, p5, p6)
-		p5 = p5 / p6._audio_manager.get_song_rate()
+		p5 = p5 / songrate
 
-        return p6._audio_manager.NOTE_PERFECTX_MIN * 2 < p5 and p5 <= p6._audio_manager.NOTE_PERFECTX_MAX * 2
+        return -40 < p5 and p5 <= 40
 
 		--[[
         local v2    
@@ -340,26 +366,28 @@ local rates = {
 local Players = game:GetService("Players")
 local uis = game:GetService("UserInputService")
 local realkeys = {}
-local ban2 = game.ReplicatedStorage:FindFirstChild("GameEvent")
-local ban = game.ReplicatedStorage:FindFirstChild("Ban")
+--local ban = game.ReplicatedStorage:FindFirstChild("GameEvent")
 local nc; nc = hookmetamethod(game, "__namecall", function(self, ...)
     local ncm = getnamecallmethod()
     
     if self == uis then
         if ncm == "GetKeysPressed" then
-            return {unpack(fakekeys)} -- returns a different table each time
+            return {unpack(fakekeys)}
         end
         --[[
         local args = {...}
         local keycode = args[1]
         if ncm == "IsKeyDown" and typeof(keycode) == "EnumItem" then
-            for _, v in next, fakekeys do
+            local keydown
+            for i = 1, #fakekeys do
+                local v = fakekeys[i]
                 if v.KeyCode == keycode then
-                    return true 
+                    return true
                 end
             end
             
-            for _, v in next, realkeys do
+            for i = 1, #realkeys do
+                local v = realkeys[i]
                 if v.KeyCode == keycode then
                     return true 
                 end
@@ -367,13 +395,21 @@ local nc; nc = hookmetamethod(game, "__namecall", function(self, ...)
         end
 
         ]]
-    elseif self == ban or self == ban2 and self.IsA(self, "RemoteEvent") and ncm == "FireServer" then
+   -- elseif self == ban and self.IsA(self, "RemoteEvent") and ncm == "FireServer" then
         --print(debug.traceback())
-        
-        return
+        --
+        --return
     end
     
     return nc(self, ...)
+end)
+
+local old8; old8 = hookfunc(uis.GetKeysPressed, function(self, ...)
+    if self == uis then
+        return {unpack(fakekeys)}
+    end
+    
+    return old8(self, ...)
 end)
 
 game.UserInputService.InputBegan:Connect(function(key)
@@ -408,11 +444,6 @@ while true do
         local note = notes[i] or {hit = true}
         
         if note.hit then continue end
-        
-        if not note.held then
-            note.press = note:_get_time_to_end()
-            note.release = note:_get_time_to_end()
-        end
         
         local press = rates:timedelta_to_result(note.press, core)
         if press and not note.hit then
