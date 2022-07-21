@@ -346,7 +346,7 @@ local nc; nc = hookmetamethod(game, "__namecall", function(self, ...)
     
     if self == uis then
         if ncm == "GetKeysPressed" then
-            return fakekeys
+            return {unpack(fakekeys)} -- returns a different table each time
         end
         --[[
         local args = {...}
