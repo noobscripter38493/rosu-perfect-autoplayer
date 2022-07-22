@@ -165,7 +165,7 @@ for i = 1, #gc do
                     local temp = old(...)
                     
                     if getconstant(2, 1) ~= "print" or getconstant(2, 3) ~= ">> Song Rate: " then err() return temp end
-                    if typeof(temp) ~= "table" then return temp end
+                    if typeof(temp) ~= "table" then err() return temp end
                     if typeof(rawget(temp, "_audio_manager")) ~= "table" then err() return temp end
                     if typeof(rawget(temp._audio_manager, "load_song")) ~= "function" then err() return temp end
                     if typeof(rawget(temp, "teardown_game")) ~= "function" then err() return temp end
@@ -186,8 +186,8 @@ for i = 1, #gc do
                     local old7 = temp._audio_manager.load_song
                     temp._audio_manager.load_song = function(...)
                         local o = old7(...)
-            			local temp = getupvalue(old7, 2)
-            			if typeof(temp) ~= "number" then err() return o end	
+			local temp = getupvalue(old7, 2)
+			if typeof(temp) ~= "number" then err() return o end	
                         songrate = temp
 
                         return o
