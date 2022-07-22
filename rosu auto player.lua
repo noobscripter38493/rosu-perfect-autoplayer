@@ -92,7 +92,7 @@ for i = 1, #gc do
                 if typeof(rawget(heldnote, "update")) ~= "function" then return heldnote end
                 
                 local t = copy_table(heldnote)
-                --t.held = true
+                t.held = true
                 t.track = track
                 notes[#notes + 1] = t
 
@@ -116,14 +116,15 @@ for i = 1, #gc do
             local old3; old3 = hookfunc(v, function(self, _1, track, p4, _2, p6, ...)
                 local note = old3(self, _1, track, p4, _2, p6, ...)
                 if typeof(note) ~= "table" then return note end
+                if typeof(p4) ~= "number" or typeof(p6) ~= "number" then return note end
                 if typeof(rawget(note, "update")) ~= "function" then return note end
                 if typeof(rawget(note, "get_time_to_end")) ~= "function" then return note end
                 
                 local t = copy_table(note)
                 t.track = track
-                --t.held = false
+                t.held = false
                 notes[#notes + 1] = t
-
+                
                 local old6 = note.get_time_to_end
                 note.get_time_to_end = function(...)
                     local o = old6(...)
@@ -159,7 +160,7 @@ for i = 1, #gc do
                     if typeof(temp) ~= "table" then return temp end
                     if typeof(rawget(temp, "_audio_manager")) ~= "table" then return temp end
                     if typeof(rawget(temp._audio_manager, "load_song")) ~= "function" then return temp end
-                    if typeof(rawget(temp, "teardown_game")) ~= "function" then return temp end
+                    if typeof(rawget(temp, "teardown_game")) ~= "function" then return temp end 
                     
                     core = temp
                     settings.playing = true
@@ -176,8 +177,8 @@ for i = 1, #gc do
                     local old7 = temp._audio_manager.load_song
                     temp._audio_manager.load_song = function(...)
                         local o = old7(...)
-			local temp = getupvalue(old7, 2)
-			if typeof(temp) ~= "number" then return o end	
+            		local temp = getupvalue(old7, 2)
+            		if typeof(temp) ~= "number" then return o end	
                         songrate = temp
 
                         return o
@@ -316,7 +317,7 @@ local rates = {
 		else
 			v1 = self.Miss
 		end
-
+    
 		return true, v1]]
 	end, 
 
@@ -371,7 +372,14 @@ local nc; nc = hookmetamethod(game, "__namecall", function(self, ...)
     
     if self == uis then
         if ncm == "GetKeysPressed" then
-            return {unpack(fakekeys)}
+            local o = {}
+            local count = 1
+            for _, v in next, fakekeys do
+                o[count] = v
+                count = count + 1
+            end
+            
+            return o
         end
         --[[
         local args = {...}
@@ -394,7 +402,7 @@ local nc; nc = hookmetamethod(game, "__namecall", function(self, ...)
         end
 
         ]]
-   -- elseif self == ban and self.IsA(self, "RemoteEvent") and ncm == "FireServer" then
+   --elseif self == ban and self.IsA(self, "RemoteEvent") and ncm == "FireServer" then
         --print(debug.traceback())
         --
         --return
@@ -405,7 +413,14 @@ end)
 
 local old8; old8 = hookfunc(uis.GetKeysPressed, function(self, ...)
     if self == uis then
-        return {unpack(fakekeys)}
+        local o = {}
+        local count = 1
+        for _, v in next, fakekeys do
+            o[count] = v
+            count = count + 1
+        end
+        
+        return o
     end
     
     return old8(self, ...)
@@ -433,7 +448,6 @@ game.UserInputService.InputEnded:Connect(function(key)
     end
 end)
 
-
 local plr = Players.LocalPlayer
 local mouse = plr:GetMouse()
 while true do
@@ -441,13 +455,12 @@ while true do
     
     for i = 1, #notes do
         local note = notes[i] or {hit = true}
-        
         if note.hit then continue end
         
         local press = rates:timedelta_to_result(note.press, core)
         if press and not note.hit then
             note.hit = true
-
+            
             spawn(function()
                 if settings.hitdelay then
                     delay()
@@ -455,7 +468,7 @@ while true do
                 
                 local t = {KeyCode = tracks[note.track], UserInputType = Enum.UserInputType.Keyboard}
                 local key = keys:GetChildren()[note.track].Value:lower()
-                table.insert(fakekeys, 1, t)
+                fakekeys[t] = t
                 spawn(firesignal, mouse.KeyDown, key)
                 
                 setThreadIdentity(2)
@@ -474,11 +487,11 @@ while true do
                 spawn(firesignal, uis.InputEnded, t, false)
                 setThreadIdentity(7)
                 
-                fakekeys[table.find(fakekeys, t) or 9999] = nil
+                fakekeys[t] = nil
                 spawn(firesignal, mouse.KeyUp, key)
             end)
         end
     end
     
-    task.wait() 
+    task.wait()
 end
