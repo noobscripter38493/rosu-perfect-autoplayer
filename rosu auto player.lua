@@ -278,7 +278,6 @@ local rates = {
 	]]
 	timedelta_to_result = function(self, p2, p3)
 		p2 = p2 / songrate
-        -- https://cdn.discordapp.com/attachments/628341793443938304/999800009719562310/unknown.png
         return -20 < p2 and p2 <= 20
 
         --[[
