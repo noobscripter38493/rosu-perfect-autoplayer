@@ -1,3 +1,4 @@
+---@diagnostic disable: redundant-parameter
 local settings = {
     autoplayer = false,
     playing = false,
@@ -74,6 +75,12 @@ local function copy_table(t)
     return c
 end
 
+local Players = game:GetService("Players")
+local plr = Players.LocalPlayer
+local function err()
+    plr:Kick("Possible script patch\nError Line: " .. getinfo(2).currentline)
+end
+
 local notes = {}
 local core  
 local songrate
@@ -88,8 +95,8 @@ for i = 1, #gc do
             local old1; old1 = hookfunc(v, function(self, _1, track, _2, _3, p6, p7, ...)
                 local heldnote = old1(self, _1, track, _2, _3, p6, p7, ...)
                     
-                if typeof(heldnote) ~= "table" then return heldnote end
-                if typeof(rawget(heldnote, "update")) ~= "function" then return heldnote end
+                if typeof(heldnote) ~= "table" then err() return heldnote end
+                if typeof(rawget(heldnote, "update")) ~= "function" then err() return heldnote end
                 
                 local t = copy_table(heldnote)
                 t.held = true
@@ -98,8 +105,10 @@ for i = 1, #gc do
 
                 local old5 = heldnote.update
                 heldnote.update = function(...)
-                    local o = old5(...) 
+                    local o = old5(...)
                     local u11 = getupvalue(old5, 2)
+
+                    if typeof(u11) ~= "number" then err() return o end
 
                     t.press = u11 - p7
                     t.release = u11 - (p6 + p7)
@@ -115,10 +124,10 @@ for i = 1, #gc do
         if noteproto and getconstants(noteproto)[3] == "NoteProto" then
             local old3; old3 = hookfunc(v, function(self, _1, track, p4, _2, p6, ...)
                 local note = old3(self, _1, track, p4, _2, p6, ...)
-                if typeof(note) ~= "table" then return note end
-                if typeof(p4) ~= "number" or typeof(p6) ~= "number" then return note end
-                if typeof(rawget(note, "update")) ~= "function" then return note end
-                if typeof(rawget(note, "get_time_to_end")) ~= "function" then return note end
+                if typeof(note) ~= "table" then err() return note end
+                if typeof(p4) ~= "number" or typeof(p6) ~= "number" then err() return note end
+                if typeof(rawget(note, "update")) ~= "function" then err() return note end
+                if typeof(rawget(note, "get_time_to_end")) ~= "function" then err() return note end
                 
                 local t = copy_table(note)
                 t.track = track
@@ -128,9 +137,8 @@ for i = 1, #gc do
                 local old6 = note.get_time_to_end
                 note.get_time_to_end = function(...)
                     local o = old6(...)
-                    
                     local u8 = getupvalue(old6, 3)
-                    if typeof(u8) ~= "number" then return o end
+                    if typeof(u8) ~= "number" then err() return o end
 
                     t.press = (p4 - p6) * (1 - u8)
                     t.release = (p4 - p6) * (1 - u8)
@@ -156,11 +164,12 @@ for i = 1, #gc do
                 v.new = function(...)
                     local temp = old(...)
                     
-                    if getconstant(2, 1) ~= "print" or getconstant(2, 3) ~= ">> Song Rate: " then return temp end
+                    if getconstant(2, 1) ~= "print" or getconstant(2, 3) ~= ">> Song Rate: " then err() return temp end
                     if typeof(temp) ~= "table" then return temp end
-                    if typeof(rawget(temp, "_audio_manager")) ~= "table" then return temp end
-                    if typeof(rawget(temp._audio_manager, "load_song")) ~= "function" then return temp end
-                    if typeof(rawget(temp, "teardown_game")) ~= "function" then return temp end 
+                    if typeof(rawget(temp, "_audio_manager")) ~= "table" then err() return temp end
+                    if typeof(rawget(temp._audio_manager, "load_song")) ~= "function" then err() return temp end
+                    if typeof(rawget(temp, "teardown_game")) ~= "function" then err() return temp end
+                    if typeof(rawget(temp, "start_game")) ~= "function" then err() return temp end
                     
                     core = temp
                     settings.playing = true
@@ -177,8 +186,8 @@ for i = 1, #gc do
                     local old7 = temp._audio_manager.load_song
                     temp._audio_manager.load_song = function(...)
                         local o = old7(...)
-            		local temp = getupvalue(old7, 2)
-            		if typeof(temp) ~= "number" then return o end	
+            			local temp = getupvalue(old7, 2)
+            			if typeof(temp) ~= "number" then err() return o end	
                         songrate = temp
 
                         return o
@@ -363,7 +372,6 @@ local rates = {
 	end
 }
 
-local Players = game:GetService("Players")
 local uis = game:GetService("UserInputService")
 local realkeys = {}
 --local ban = game.ReplicatedStorage:FindFirstChild("GameEvent")
@@ -448,7 +456,6 @@ game.UserInputService.InputEnded:Connect(function(key)
     end
 end)
 
-local plr = Players.LocalPlayer
 local mouse = plr:GetMouse()
 while true do
     if not settings.autoplayer or not settings.playing then task.wait(1) continue end
