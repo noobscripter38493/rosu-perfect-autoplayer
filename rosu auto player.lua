@@ -1,3 +1,5 @@
+game.Players.LocalPlayer:Kick("patched")
+
 ---@diagnostic disable: redundant-parameter
 local settings = {
     autoplayer = false,
