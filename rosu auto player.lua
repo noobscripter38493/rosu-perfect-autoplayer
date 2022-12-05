@@ -198,51 +198,6 @@ for i = 1, #gc do
                     return temp
                 end
             end)
-            --[[
-            spawn(function()
-                local noteproto = getprotos(new)[5]
-                if noteproto and getconstants(noteproto)[3] == "NoteProto" then
-                    local old3; old3 = hookfunc(new, function(self, _, track, ...)
-                        print('lol')
-                        local note = old3(self, _, track, ...)
-                        if typeof(note) ~= "table" then return note end
-                        
-                        notes[#notes + 1] = copy_table(note)
-                        notes[#notes].track = track
-                        
-                        return note
-                    end)
-                end
-            end)
-
-            local heldnoteproto = getprotos(new)[10]
-            if heldnoteproto and getconstants(heldnoteproto)[3] == "HeldNoteProto" then
-                local old4; old4 = hookfunc(new, function(self, _1, track, _2, _3, p6, p7, ...)
-                    local heldnote = old4(self, _1, track, _2, _3, p6, p7, ...)
-                    
-                    if typeof(heldnote) ~= "table" then return heldnote end
-                    if typeof(rawget(heldnote, "update")) ~= "function" then return heldnote end
-
-                    notes[#notes + 1] = copy_table(heldnote)
-                    
-                    local t = notes[#notes]
-                    t.track = track
-                    
-                    local old5 = heldnote.update
-                    heldnote.update = function(...)
-                        local o = old5(...)
-                        local u11 = getupvalue(old5, 2)
-
-                        t.press = u11 - p6
-                        t.release = u11 - (p6 + p7)
-                        
-                        return o
-                    end
-                    
-                    return heldnote
-                end)
-            end
-            ]]
         end
     end
 end
@@ -280,97 +235,14 @@ local function delay()
 end
 
 local rates = { 
-    --[[
-	Miss = 0, 
-	Bad = 1, 
-	Good = 2, 
-	Great = 3, 
-	Perfect = 4, 
-	PerfectX = 5, 
-	]]
 	timedelta_to_result = function(self, p2, p3)
 		p2 = p2 / songrate
-        return -20 < p2 and p2 <= 20
-
-        --[[
-		if not (p3._audio_manager.NOTE_BAD_MIN <= p2) or not (p2 <= p3._audio_manager.NOTE_MISS_MAX) then
-			return false, self.Miss
-		end;
-		
-        
-		local v1
-		if p3._audio_manager.NOTE_BAD_MIN < p2 and p2 <= p3._audio_manager.NOTE_GOOD_MIN then
-			v1 = self.Bad
-
-		elseif p3._audio_manager.NOTE_GOOD_MIN < p2 and p2 <= p3._audio_manager.NOTE_GREAT_MIN then
-			v1 = self.Good
-
-		elseif p3._audio_manager.NOTE_GREAT_MIN < p2 and p2 <= p3._audio_manager.NOTE_PERFECT_MIN then
-			v1 = self.Great
-
-		elseif p3._audio_manager.NOTE_PERFECT_MIN < p2 and p2 <= p3._audio_manager.NOTE_PERFECTX_MIN then
-			v1 = self.Perfect
-
-		elseif p3._audio_manager.NOTE_PERFECTX_MIN < p2 and p2 <= p3._audio_manager.NOTE_PERFECTX_MAX then
-			v1 = self.PerfectX
-
-		elseif p3._audio_manager.NOTE_PERFECTX_MAX < p2 and p2 <= p3._audio_manager.NOTE_PERFECT_MAX then
-			v1 = self.Perfect
-
-		elseif p3._audio_manager.NOTE_PERFECT_MAX < p2 and p2 <= p3._audio_manager.NOTE_GREAT_MAX then
-			v1 = self.Great
-
-		elseif p3._audio_manager.NOTE_GREAT_MAX < p2 and p2 <= p3._audio_manager.NOTE_GOOD_MAX then
-			v1 = self.Good
-
-		elseif p3._audio_manager.NOTE_GOOD_MAX < p2 and p2 <= p3._audio_manager.NOTE_BAD_MAX then
-			v1 = self.Bad
-		else
-			v1 = self.Miss
-		end
-    
-		return true, v1]]
+        	return -20 < p2 and p2 <= 20
 	end, 
-
 	release_timedelta_to_result = function(self, p5, p6)
 		p5 = p5 / songrate
 
         return -40 < p5 and p5 <= 40
-
-		--[[
-        local v2    
-        if not (p6._audio_manager.NOTE_BAD_MIN * 2 <= p5) or not (p5 <= p6._audio_manager.NOTE_BAD_MAX * 2) then
-			return false, self.Miss
-		end;
-		if p6._audio_manager.NOTE_BAD_MIN * 2 < p5 and p5 <= p6._audio_manager.NOTE_GOOD_MIN * 2 then
-			v2 = self.Bad
-
-		elseif p6._audio_manager.NOTE_GOOD_MIN * 2 < p5 and p5 <= p6._audio_manager.NOTE_GREAT_MIN * 2 then
-			v2 = self.Good
-
-		elseif p6._audio_manager.NOTE_GREAT_MIN * 2 < p5 and p5 <= p6._audio_manager.NOTE_PERFECT_MIN * 2 then
-			v2 = self.Great
-
-		elseif p6._audio_manager.NOTE_PERFECT_MIN * 2 < p5 and p5 <= p6._audio_manager.NOTE_PERFECTX_MIN * 2 then
-			v2 = self.Perfect
-
-		elseif p6._audio_manager.NOTE_PERFECTX_MIN * 2 < p5 and p5 <= p6._audio_manager.NOTE_PERFECTX_MAX * 2 then
-			v2 = self.PerfectX
-
-		--elseif p6._audio_manager.NOTE_PERFECTX_MAX * 2 < p5 and p5 <= p6._audio_manager.NOTE_PERFECT_MAX * 2 then
-			v2 = self.Perfect
-
-		elseif p6._audio_manager.NOTE_PERFECT_MAX * 2 < p5 and p5 <= p6._audio_manager.NOTE_GREAT_MAX * 2 then
-			v2 = self.Great
-
-		elseif p6._audio_manager.NOTE_GREAT_MAX * 2 < p5 and p5 <= p6._audio_manager.NOTE_GOOD_MAX * 2 then
-			v2 = self.Good
-
-		else
-			v2 = self.Bad
-		end
-
-		return true, v2]]
 	end
 }
 
@@ -391,7 +263,7 @@ local nc; nc = hookmetamethod(game, "__namecall", function(self, ...)
             
             return o
         end
-        --[[
+
         local args = {...}
         local keycode = args[1]
         if ncm == "IsKeyDown" and typeof(keycode) == "EnumItem" then
